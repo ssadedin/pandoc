@@ -334,6 +334,7 @@ data WriterOptions = WriterOptions
   , writerMediaBag         :: MediaBag       -- ^ Media collected by docx or epub reader
   , writerVerbose          :: Bool           -- ^ Verbose debugging output
   , writerLaTeXArgs        :: [String]       -- ^ Flags to pass to latex-engine
+  , writerLaTeXShortCap     :: Bool          -- ^ Extract first sentence of table and image captions as short caption
   } deriving (Show, Data, Typeable)
 
 instance Default WriterOptions where
@@ -379,6 +380,7 @@ instance Default WriterOptions where
                       , writerMediaBag         = mempty
                       , writerVerbose          = False
                       , writerLaTeXArgs        = []
+                      , writerLaTeXShortCap    = False
                       }
 
 -- | Returns True if the given extension is enabled.

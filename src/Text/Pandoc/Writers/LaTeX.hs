@@ -322,14 +322,27 @@ blockToLaTeX (Plain lst) =
   inlineListToLaTeX $ dropWhile isLineBreakOrSpace lst
 -- title beginning with fig: indicates that the image is a figure
 blockToLaTeX (Para [Image txt (src,'f':'i':'g':':':tit)]) = do
+  opts <- gets stOptions
   inNote <- gets stInNote
   capt <- inlineListToLaTeX txt
   img <- inlineToLaTeX (Image txt (src,tit))
+ 
+  firstSentence <- stringToLaTeX TextString $ (extractFirstSentence txt)
+
+  let shortCap = if writerLaTeXShortCap opts
+                 -- then "[" <> (text firstSentence) <> "]" 
+                 then brackets (text firstSentence) 
+                 else ""
+ 
+
   return $ if inNote
               -- can't have figures in notes
               then "\\begin{center}" $$ img $+$ capt $$ "\\end{center}"
               else "\\begin{figure}[htbp]" $$ "\\centering" $$ img $$
-                      ("\\caption" <> braces capt) $$ "\\end{figure}"
+                      ("\\caption" <> shortCap <> braces capt) $$ "\\end{figure}"
+
+                      -- else ("\\caption" <> brackets (text short) <> braces capt) $$ "\\end{figure}"
+
 -- . . . indicates pause in beamer slides
 blockToLaTeX (Para [Str ".",Space,Str ".",Space,Str "."]) = do
   beamer <- writerBeamer `fmap` gets stOptions
@@ -477,6 +490,9 @@ blockToLaTeX (Header level (id',classes,_) lst) = do
   modify $ \s -> s{stInHeading = False}
   return hdr
 blockToLaTeX (Table caption aligns widths heads rows) = do
+
+  opts <- gets stOptions
+
   headers <- if all null heads
                 then return empty
                 else ($$ "\\midrule\n") `fmap`
@@ -485,12 +501,23 @@ blockToLaTeX (Table caption aligns widths heads rows) = do
                    then empty
                    else text "\\endhead"
   captionText <- inlineListToLaTeX caption
+
+  
+  firstSentence <- stringToLaTeX TextString $ extractFirstSentence caption
+  
+  let shortCap = if writerLaTeXShortCap opts
+                 then brackets (text firstSentence) 
+                 else ""
+
   let capt = if isEmpty captionText
                 then empty
-                else text "\\caption" <> braces captionText
+                else text "\\caption" 
+                         <> shortCap
+                         <> braces captionText
                          <> "\\tabularnewline\n\\toprule\n"
                          <> headers
                          <> "\\endfirsthead"
+
   rows' <- mapM (tableRowToLaTeX False aligns widths) rows
   let colDescriptors = text $ concat $ map toColDescriptor aligns
   modify $ \s -> s{ stTable = True }

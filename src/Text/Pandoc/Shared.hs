@@ -49,6 +49,7 @@ module Text.Pandoc.Shared (
                      toRomanNumeral,
                      escapeURI,
                      tabFilter,
+                     extractFirstSentence,
                      -- * Date/time
                      normalizeDate,
                      -- * Pandoc block and inline list processing
@@ -290,6 +291,15 @@ tabFilter tabStop =
       go spsToNextStop (x:xs) =
         x : go (spsToNextStop - 1) xs
   in  go tabStop
+
+extractFirstSentence :: [Inline] -> String
+extractFirstSentence [] = ""
+extractFirstSentence (Str txt:txts) = 
+    let parts = break (=='.') txt
+    in if (snd parts) == ""
+        then txt ++ " " ++ (extractFirstSentence txts)
+        else fst parts
+extractFirstSentence (_:ils) = extractFirstSentence ils
 
 --
 -- Date/time

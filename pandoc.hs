@@ -211,6 +211,7 @@ data Opt = Opt
     , optTrackChanges      :: TrackChanges -- ^ Accept or reject MS Word track-changes.
     , optKaTeXStylesheet   :: Maybe String     -- ^ Path to stylesheet for KaTeX
     , optKaTeXJS           :: Maybe String     -- ^ Path to js file for KaTeX
+    , optLaTeXShortCap     :: Bool       -- Whether to generate short captions for latex output
     }
 
 -- | Defaults for command-line options.
@@ -273,6 +274,7 @@ defaultOpts = Opt
     , optTrackChanges          = AcceptChanges
     , optKaTeXStylesheet       = Nothing
     , optKaTeXJS               = Nothing
+    , optLaTeXShortCap         = False
     }
 
 -- | A list of functions, each transforming the options data structure
@@ -787,6 +789,11 @@ options =
                   (\opt -> return opt { optCiteMethod = Biblatex }))
                  "" -- "Use biblatex cite commands in LaTeX output"
 
+    , Option "" ["latex-short-cap"]
+                 (NoArg
+                  (\opt -> return opt { optLaTeXShortCap = True }))
+                 "" -- "Auto-generate short LaTeX captions"
+
     , Option "m" ["latexmathml", "asciimathml"]
                  (OptArg
                   (\arg opt ->
@@ -1105,6 +1112,7 @@ main = do
               , optTrackChanges          = trackChanges
               , optKaTeXStylesheet       = katexStylesheet
               , optKaTeXJS               = katexJS
+              , optLaTeXShortCap         = latexShortCap
              } = opts
 
   when dumpArgs $
@@ -1328,7 +1336,8 @@ main = do
                             writerReferenceDocx    = referenceDocx,
                             writerMediaBag         = media,
                             writerVerbose          = verbose,
-                            writerLaTeXArgs        = latexEngineArgs
+                            writerLaTeXArgs        = latexEngineArgs,
+                            writerLaTeXShortCap    = latexShortCap
                           }
 
 
